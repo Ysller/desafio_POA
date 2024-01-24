@@ -1,0 +1,56 @@
+// Classe base para Conta Bancária
+public class ContaBancaria {
+    private String tipo;
+    private double saldo;
+
+    public ContaBancaria(String tipo, double saldo) {
+        this.tipo = tipo;
+        this.saldo = saldo;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public double getSaldo() {
+        return saldo;
+    }
+
+    public void sacar(double valor) {
+        if (saldo >= valor) {
+            saldo -= valor;
+            System.out.println("Saque de " + valor + " realizado na conta " + tipo);
+        } else {
+            System.out.println("Saldo insuficiente na conta " + tipo);
+        }
+    }
+}
+// Aspecto para verificar o saldo em todas as contas
+public aspect VerificacaoSaldoAspect {
+
+    // Ponto de corte para todos os métodos de saque nas classes de Conta Bancária
+    pointcut saqueOperation(ContaBancaria conta, double valor) :
+            execution(* ContaBancaria.sacar(double)) && target(conta) && args(valor);
+
+    // Conselho antes da execução do método de saque
+    before(ContaBancaria conta, double valor) : saqueOperation(conta, valor) {
+        verificarSaldo(conta, valor);
+    }
+
+    // Método para verificar o saldo e gerar mensagens de erro, se necessário
+    private void verificarSaldo(ContaBancaria conta, double valor) {
+        if (conta.getSaldo() < valor) {
+            System.out.println("Saldo insuficiente na conta " + conta.getTipo());
+        }
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        ContaBancaria contaCorrente = new ContaBancaria("Corrente", 1000.0);
+        ContaBancaria contaSalario = new ContaBancaria("Salário", 500.0);
+
+        // Tentativa de saque em contas
+        contaCorrente.sacar(800.0);
+        contaSalario.sacar(700.0);
+    }
+}
